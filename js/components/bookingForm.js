@@ -2,6 +2,14 @@
  * Форма бронирования квартиры (отдельный компонент для страницы квартиры)
  */
 
+import {
+  submitForm,
+  setFormLoading,
+  showFormSuccess,
+  showFormError,
+  clearFormError
+} from '../utils/formSubmit.js';
+
 export function renderBookingModal() {
   return `
     <div class="modal" id="booking-modal" aria-hidden="true" role="dialog" aria-labelledby="booking-modal-title">
@@ -87,31 +95,38 @@ function showError(form, field, message) {
   if (inputEl) inputEl.classList.add('form__input--error');
 }
 
-function handleBookingSubmit(form, e) {
+async function handleBookingSubmit(form, e) {
   e.preventDefault();
   if (!validateBookingForm(form)) return;
 
+  clearFormError(form);
+  setFormLoading(form, true);
+
   const formData = new FormData(form);
-  const data = {
-    type: 'booking',
-    apartmentId: formData.get('apartmentId'),
-    name: formData.get('name'),
-    phone: formData.get('phone'),
-    email: formData.get('email'),
-    comment: formData.get('comment'),
-    mortgage: formData.get('mortgage') === 'on',
-    timestamp: new Date().toISOString()
-  };
+  const result = await submitForm({
+    formType: 'booking',
+    subject: `[ЖК Северный Сад] Бронирование кв. №${formData.get('apartmentId')}`,
+    fields: {
+      name: formData.get('name'),
+      phone: formData.get('phone'),
+      email: formData.get('email') || '—',
+      comment: formData.get('comment') || '—',
+      apartment_id: formData.get('apartmentId'),
+      mortgage: formData.get('mortgage') === 'on' ? 'Да' : 'Нет'
+    }
+  });
 
-  console.log('[Booking Form] Заявка на бронирование:', data);
+  setFormLoading(form, false);
 
-  form.innerHTML = `
-    <div class="form__success">
-      <div class="form__success-icon">✓</div>
-      <h3>Квартира забронирована!</h3>
-      <p>Менеджер свяжется с вами для подтверждения бронирования.</p>
-    </div>
-  `;
+  if (result.success) {
+    showFormSuccess(form, {
+      title: 'Квартира забронирована!',
+      text: 'Менеджер свяжется с вами для подтверждения бронирования.'
+    });
+    return;
+  }
+
+  showFormError(form, result.message);
 }
 
 export function initBookingForm() {

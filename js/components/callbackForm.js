@@ -3,6 +3,13 @@
  */
 
 import { COMPLEX } from '../data/complex.js';
+import {
+  submitForm,
+  setFormLoading,
+  showFormSuccess,
+  showFormError,
+  clearFormError
+} from '../utils/formSubmit.js';
 
 export function renderCallbackFormSection() {
   return `
@@ -118,28 +125,36 @@ function showError(form, field, message) {
   if (inputEl) inputEl.classList.add('form__input--error');
 }
 
-function handleCallbackSubmit(form, e) {
+async function handleCallbackSubmit(form, e) {
   e.preventDefault();
   if (!validateCallbackForm(form)) return;
 
+  clearFormError(form);
+  setFormLoading(form, true);
+
   const formData = new FormData(form);
-  const data = {
-    type: 'callback',
-    name: formData.get('name'),
-    phone: formData.get('phone'),
-    time: formData.get('time'),
-    timestamp: new Date().toISOString()
-  };
+  const result = await submitForm({
+    formType: 'callback',
+    subject: `[ЖК Северный Сад] Обратный звонок — ${formData.get('name')}`,
+    fields: {
+      name: formData.get('name'),
+      phone: formData.get('phone'),
+      preferred_time: formData.get('time'),
+      source: form.id === 'callback-form-modal' ? 'modal' : 'inline'
+    }
+  });
 
-  console.log('[Callback Form] Заявка на обратный звонок:', data);
+  setFormLoading(form, false);
 
-  form.innerHTML = `
-    <div class="form__success">
-      <div class="form__success-icon">✓</div>
-      <h3>Заявка принята!</h3>
-      <p>Мы свяжемся с вами в ближайшее время.</p>
-    </div>
-  `;
+  if (result.success) {
+    showFormSuccess(form, {
+      title: 'Заявка принята!',
+      text: 'Мы свяжемся с вами в ближайшее время.'
+    });
+    return;
+  }
+
+  showFormError(form, result.message);
 }
 
 export function initCallbackForms() {
