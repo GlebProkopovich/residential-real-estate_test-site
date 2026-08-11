@@ -3,7 +3,23 @@
  */
 
 import { COMPLEX } from '../data/complex.js';
-import { renderCallbackFormSection } from '../components/callbackForm.js';
+import { renderCallbackFormSection, openCallbackModal } from '../components/callbackForm.js';
+
+const MOBILE_BREAKPOINT = window.matchMedia('(max-width: 768px)');
+const HERO_CALLBACK_BTN_DESKTOP_ID = 'hero-callback-btn';
+const HERO_CALLBACK_BTN_MOBILE_ID = 'mob-hero-callback-btn';
+let heroCallbackMediaListener = null;
+
+function getHeroCallbackBtn() {
+  return document.getElementById(HERO_CALLBACK_BTN_DESKTOP_ID)
+    || document.getElementById(HERO_CALLBACK_BTN_MOBILE_ID);
+}
+
+function updateHeroCallbackBtnId() {
+  const btn = getHeroCallbackBtn();
+  if (!btn) return;
+  btn.id = MOBILE_BREAKPOINT.matches ? HERO_CALLBACK_BTN_MOBILE_ID : HERO_CALLBACK_BTN_DESKTOP_ID;
+}
 
 export function renderHomePage() {
   const advantages = COMPLEX.advantages.map(adv => `
@@ -92,13 +108,17 @@ export function renderHomePage() {
 }
 
 export function initHomePage() {
-  const heroBtn = document.getElementById('hero-callback-btn');
+  updateHeroCallbackBtnId();
+
+  if (heroCallbackMediaListener) {
+    MOBILE_BREAKPOINT.removeEventListener('change', heroCallbackMediaListener);
+  }
+  heroCallbackMediaListener = () => updateHeroCallbackBtnId();
+  MOBILE_BREAKPOINT.addEventListener('change', heroCallbackMediaListener);
+
+  const heroBtn = getHeroCallbackBtn();
   if (heroBtn) {
-    heroBtn.addEventListener('click', () => {
-      import('../components/callbackForm.js').then(({ openCallbackModal }) => {
-        openCallbackModal();
-      });
-    });
+    heroBtn.addEventListener('click', () => openCallbackModal());
   }
 
   document.querySelectorAll('.genplan__building').forEach(building => {
