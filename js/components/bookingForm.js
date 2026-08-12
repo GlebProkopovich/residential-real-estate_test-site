@@ -2,6 +2,7 @@
  * Форма бронирования квартиры (отдельный компонент для страницы квартиры)
  */
 
+import { getApartmentById } from '../data/complex.js';
 import {
   submitForm,
   setFormLoading,
@@ -9,6 +10,7 @@ import {
   showFormError,
   clearFormError
 } from '../utils/formSubmit.js';
+import { pushBookingPurchaseEvent } from '../utils/yandexMetrika.js';
 
 export function renderBookingModal() {
   return `
@@ -131,8 +133,17 @@ async function handleBookingSubmit(form, e) {
 
 export function initBookingForm() {
   const form = document.getElementById('booking-form');
-  if (form) {
-    form.addEventListener('submit', (e) => handleBookingSubmit(form, e));
+  if (!form) return;
+
+  form.addEventListener('submit', (e) => handleBookingSubmit(form, e));
+
+  const submitBtn = form.querySelector('[type="submit"]');
+  if (submitBtn) {
+    submitBtn.addEventListener('click', () => {
+      const apartmentId = form.querySelector('[name="apartmentId"]')?.value;
+      if (!apartmentId) return;
+      pushBookingPurchaseEvent(getApartmentById(apartmentId));
+    });
   }
 }
 
