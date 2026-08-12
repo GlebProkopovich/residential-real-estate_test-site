@@ -19,6 +19,7 @@ import { renderHomePage, initHomePage } from './pages/home.js';
 import { renderApartmentsPage, initApartmentsPage } from './pages/apartments.js';
 import { renderApartmentDetailPage, initApartmentDetailPage } from './pages/apartmentDetail.js';
 import { renderContactsPage, initContactsPage } from './pages/contacts.js';
+import { initFormAttributeSync } from './utils/syncFormAttributes.js';
 
 const app = document.getElementById('app');
 const modalRoot = document.getElementById('modal-root');
@@ -109,6 +110,8 @@ function renderPage(route) {
 
   window.scrollTo(0, 0);
   updatePageTitle(route);
+  initFormAttributeSync(app);
+  initFormAttributeSync(modalRoot);
 }
 
 function updatePageTitle(route) {

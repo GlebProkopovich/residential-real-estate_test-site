@@ -11,6 +11,7 @@ import {
   clearFormError
 } from '../utils/formSubmit.js';
 import { pushBookingPurchaseEvent } from '../utils/yandexMetrika.js';
+import { bindFormAttributeSync, syncFieldToAttribute } from '../utils/syncFormAttributes.js';
 
 export function renderBookingModal() {
   return `
@@ -161,6 +162,7 @@ export function openBookingModal(apartment) {
   }
   if (aptIdInput) {
     aptIdInput.value = apartment.id;
+    syncFieldToAttribute(aptIdInput);
   }
 
   modal.classList.add('modal--open');
@@ -246,6 +248,7 @@ function resetBookingForm() {
   });
 
   initBookingForm();
+  bindFormAttributeSync(document.getElementById('booking-form'));
 }
 
 export function bindBookingButton(apartment) {
